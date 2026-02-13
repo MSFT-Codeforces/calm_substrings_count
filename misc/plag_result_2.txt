@@ -1,0 +1,2 @@
+- GeeksforGeeks (Practice) — Count the Substring — `https://www.geeksforgeeks.org/problems/count-the-substring--170645/1` ([geeksforgeeks.org](https://www.geeksforgeeks.org/problems/count-the-substring--170645/1?utm_source=openai))  
+- LeetCode 2031 — Count Subarrays With More Ones Than Zeros — `https://leetcode.com/problems/count-subarrays-with-more-ones-than-zeros/` ([leetcode.com](https://leetcode.com/problems/count-subarrays-with-more-ones-than-zeros/))

@@ -1,0 +1,155 @@
+**[section_01]**
+Interpreting the definitions and required output precisely.
+**[atomic_01_01]**
+We are given an integer $n$ and a string $s$ of length $n$. The string contains only lowercase English letters, so every character belongs to the set $\{a,b,\dots,z\}$. All counting and comparisons are done with respect to these 26 possible letters.
+**[atomic_01_02]**
+An “excerpt” is any contiguous piece of the ribbon, meaning any substring $s[l..r]$ with $1 \le l \le r \le n$. Non-contiguous selections (subsequences) are not allowed, so we must only consider segments that keep all characters between $l$ and $r$.
+**[atomic_01_03]**
+For a chosen substring $t$ of length $m$, we define $\text{freq}_t(x)$ as the number of times letter $x$ appears in $t$. The substring is called **calm** if no letter dominates the substring by occurring strictly more than half of its length.
+**[atomic_01_04]**
+Formally, the calm condition is:
+$$
+\forall x \in \{a,\dots,z\},\ \text{freq}_t(x) \le \frac{m}{2}.
+$$
+The inequality is non-strict, so if $m$ is even, a letter occurring exactly $\frac{m}{2}$ times is still allowed, and the substring can remain calm.
+**[atomic_01_05]**
+The required output is the total number of calm substrings of $s$, printed as a single integer. Since the total number of substrings is $\frac{n(n+1)}{2}$, the answer can be on the order of $10^{10}$ when $n$ is large, so the result must be stored and printed using a 64-bit integer type.
+
+**[section_02]**
+Designing test and edge cases to validate interpretation and catch pitfalls.
+**[atomic_02_01]**
+Test the smallest input: $n=1$, $s="a"$. The only substring has length $m=1$, and its only letter occurs $1$ time, which is strictly greater than $\frac{1}{2}$. Therefore, the expected answer is $0$, confirming that length-$1$ substrings are never calm.
+**[atomic_02_02]**
+Test a case with all distinct letters, such as $s="abcd"$. Substrings of length $2$ like "ab" have maximum frequency $1$, and $\frac{2}{2}=1$, so they should be calm. This confirms that equality to $\frac{m}{2}$ does not break calmness.
+**[atomic_02_03]**
+Test a case with all identical letters, such as $s="aaaa"$. Every substring of length $m$ has a letter with frequency $m$, and $m > \frac{m}{2}$ for all $m \ge 1$, so the expected answer is $0$. This checks extreme dominance and repeated-character behavior.
+**[atomic_02_04]**
+Test odd lengths where $\frac{m}{2}$ is fractional, such as $s="aab"$. The full substring "aab" has $m=3$ and $\text{freq}('a')=2$, and $2 > \frac{3}{2}=1.5$, so it is not calm. This prevents mistakes caused by integer division or rounding assumptions.
+**[atomic_02_05]**
+Test balanced compositions, such as $s="aabb"$. The substring "aabb" has maximum frequency $2$ and $\frac{4}{2}=2$, so it should be calm, while "aa" is not calm because $2 > 1$. This checks that the condition depends on each substring’s own length and distribution.
+**[atomic_02_06]**
+Test that all letters are treated uniformly by trying strings involving letters near both ends of the alphabet, such as $s="zzaz"$. The expected behavior should not depend on whether a letter is 'a' or 'z'; any discrepancy would indicate an indexing or mapping error rather than a logical error in the definition.
+**[atomic_02_07]**
+Stress-test reasoning with maximum $n$ conceptually: $n=2 \cdot 10^5$. Even if we cannot manually compute the expected value, this highlights that the answer may exceed 32-bit limits and that any correct implementation must avoid per-substring handling in practice. This test category is mainly for verifying that the solution design is compatible with constraints.
+
+**[section_03]**
+Implementing brute force enumeration of all substrings and verifying calmness directly.
+**[atomic_03_01]**
+A most direct attempt is to enumerate all substrings by choosing every pair $(l,r)$ with $1 \le l \le r \le n$. For each substring, we compute the frequency of each of the 26 letters, then check whether any frequency exceeds $\frac{m}{2}$, where $m=r-l+1$.
+**[atomic_03_02]**
+If we compute frequencies by scanning the substring characters every time, the work for one substring is $O(m)$. Summed across all substrings, the total scanning cost grows cubically because the total length over all substrings is $\Theta(n^3)$ in the worst case.
+**[atomic_03_03]**
+The calmness check after counting is comparatively small: we scan 26 counts and compare them to $\frac{m}{2}$. However, this constant-factor improvement does not help because repeated rescanning dominates runtime by a huge margin.
+**[atomic_03_04]**
+This approach is useful only as a correctness baseline for very small $n$ (for example, $n \le 2000$), where brute force results can be compared against other implementations. For the actual constraints, it becomes unusable because the number of operations explodes.
+**[atomic_03_05]**
+The reason this attempt fails is not ambiguity in the condition but the number of substrings and repeated work per substring. Since $n$ can be $2 \cdot 10^5$, any algorithm that examines each substring explicitly is effectively ruled out.
+
+**Complexity**
+- Time: $O(n^3)$
+- Space: $O(1)$ (or $O(26)$ for a frequency table)
+
+**[section_04]**
+Reducing redundant work using prefix frequency tables to enable faster substring frequency queries.
+**[atomic_04_01]**
+To remove repeated rescanning, we can precompute prefix frequencies for each letter. Let $\text{pref}[i][c]$ be the number of times letter $c$ appears in the prefix $s[1..i]$. This structure allows extracting letter counts in any substring using subtraction.
+**[atomic_04_02]**
+For any substring $s[l..r]$, the number of occurrences of letter $c$ is:
+$$
+\text{pref}[r][c] - \text{pref}[l-1][c].
+$$
+So we can compute all 26 letter frequencies for a substring without scanning its characters, relying only on prefix values.
+**[atomic_04_03]**
+We still must consider all $O(n^2)$ substrings, but now each substring can be checked in $O(26)$ time by computing the 26 frequencies and verifying that none exceeds $\frac{m}{2}$. This eliminates the third factor of $n$ present in the naive scan-based method.
+**[atomic_04_04]**
+Despite being a large improvement from cubic to quadratic time, $O(n^2)$ is still far too slow for $n=2 \cdot 10^5$ because it would require processing roughly $2 \cdot 10^{10}$ substrings. Even with small constants, this is beyond typical limits.
+**[atomic_04_05]**
+This attempt fails because it still enumerates substrings explicitly. The optimization only reduces the per-substring cost, but the core bottleneck is the number of substrings. We need a counting method that avoids iterating over all $(l,r)$ pairs.
+
+**Complexity**
+- Time: $O(26 n^2)$
+- Space: $O(26 n)$
+
+**[section_05]**
+Reframing the problem as counting non-calm substrings per dominant letter and attempting a moderately faster counting method.
+**[atomic_05_01]**
+Instead of counting calm substrings directly, we can count the complement: non-calm substrings. The number of calm substrings is:
+$$
+\#(\text{calm}) = \#(\text{all substrings}) - \#(\text{non-calm}),
+$$
+where $\#(\text{all substrings})=\frac{n(n+1)}{2}$ is immediate from combinatorics.
+**[atomic_05_02]**
+A substring is non-calm if at least one letter appears more than half the substring length. Importantly, it cannot happen for two different letters simultaneously: if $x$ and $y$ both appeared more than $\frac{m}{2}$ times in a length-$m$ substring, then their counts would sum to more than $m$, which is impossible.
+**[atomic_05_03]**
+Because the “over-half” letter is unique whenever a substring is non-calm, we can sum contributions per letter without double counting:
+$$
+\#(\text{non-calm}) = \sum_{c='a'}^{'z'} \#(\text{substrings where } c \text{ is the unique over-half letter}).
+$$
+This step is about correctness: uniqueness guarantees that each non-calm substring is assigned to exactly one letter.
+**[atomic_05_04]**
+Fix one letter $c$. Define an array $a$ of length $n$ by $a_i=+1$ if $s_i=c$, otherwise $a_i=-1$. For a substring with length $m$ containing $\#c$ occurrences of $c$, the sum over $a$ is:
+$$
+(+1)\cdot \#c + (-1)\cdot (m-\#c) = 2\#c - m.
+$$
+Then $\#c > \frac{m}{2}$ is equivalent to $2\#c-m>0$, meaning the substring sum is strictly positive.
+**[atomic_05_05]**
+Using prefix sums $P_0=0$ and $P_k=\sum_{i=1}^k a_i$, a substring $(l..r)$ has positive sum iff:
+$$
+P_r - P_{l-1} > 0 \iff P_{l-1} < P_r.
+$$
+So for each position $r$, we need the number of earlier prefix sums strictly smaller than $P_r$; summing these counts gives the number of positive-sum substrings for this letter.
+**[atomic_05_06]**
+At this stage, a natural data-handling attempt is to keep a frequency table of prefix sums and support queries of “how many sums are smaller than $P_r$”. Because $P_r \in [-n,n]$, we can store counts in an array and use block (sqrt) decomposition to query prefix ranges in about $O(\sqrt n)$ time per position.
+**[atomic_05_07]**
+This is a strict improvement over quadratic enumeration because each letter now costs about $O(n\sqrt n)$ rather than $O(n^2)$. However, with $n=2 \cdot 10^5$ and 26 letters, $26 \cdot n\sqrt n$ remains too large in practice. The approach fails on performance, motivating a switch to logarithmic-time range queries.
+
+**Complexity**
+- Time: $O(26 \cdot n \sqrt n)$
+- Space: $O(n)$
+
+**[section_06]**
+Replacing block decomposition with a Fenwick Tree to count positive-sum substrings efficiently per letter.
+**[atomic_06_01]**
+We keep the same reframing: compute $\#(\text{calm})$ by subtracting non-calm substrings from the total, and compute non-calm substrings by summing counts over all 26 letters. The core remaining task is counting, for a fixed letter $c$, how many substrings have positive sum in its corresponding $\pm 1$ array.
+**[atomic_06_02]**
+For fixed $c$, we process prefix sums $P_0,P_1,\dots,P_n$ from left to right. When we are at $P_j$, the number of valid starting points $i<j$ is the count of previous prefix sums with $P_i < P_j$. This turns the problem into repeated “count of smaller values so far” queries.
+**[atomic_06_03]**
+A Fenwick Tree (Binary Indexed Tree) supports two operations efficiently: incrementing the count at one index (inserting a prefix sum) and querying the total count up to an index (how many inserted sums are $\le$ a threshold). These are exactly the operations needed to count “how many prior sums are smaller”.
+**[atomic_06_04]**
+Since each prefix sum lies in $[-n,n]$, we can map a value $x$ to a positive index $x+\text{offset}$, where $\text{offset}$ is chosen so that the minimum possible mapped value is at least $1$. This avoids special cases at index $0$ and ensures Fenwick operations remain valid.
+**[atomic_06_05]**
+To enforce strict inequality $P_i < P_j$, when the current mapped index is $\text{idx}$ we query only up to $\text{idx}-1$. If we queried up to $\text{idx}$, we would incorrectly count pairs where $P_i=P_j$, which correspond to zero-sum substrings and should not be counted as “over-half” cases.
+**[atomic_06_06]**
+It is essential to insert $P_0=0$ into the Fenwick Tree before scanning characters. Without this, substrings starting at position $1$ would never be counted because they correspond to comparisons against $P_0$. This is a correctness prerequisite, not an optimization detail.
+**[atomic_06_07]**
+A minimal fragment capturing the strict query-then-insert logic is:
+```cpp
+positiveSubarrays += fenwick.sumPrefix(idx - 1);
+fenwick.add(idx, 1);
+```
+Repeating this for all positions and all letters gives the total number of non-calm substrings; subtracting from $\frac{n(n+1)}{2}$ yields the final answer.
+
+**Complexity**
+- Time: $O(26 \cdot n \log n)$
+- Space: $O(n)$
+
+**[section_07]**
+Validating correctness with invariants and addressing corner cases and implementation pitfalls.
+**[atomic_07_01]**
+The central correctness invariant is uniqueness of the over-half letter in any non-calm substring. This invariant justifies summing non-calm counts over letters without worrying about double counting. If this invariant were false, the subtraction $\#(\text{all})-\#(\text{non-calm})$ would require inclusion-exclusion instead.
+**[atomic_07_02]**
+Strictness is a frequent source of off-by-one mistakes. The condition is “strictly more than half”, so we must count only substrings where $2\#c-m>0$, i.e., strictly positive sums, not nonnegative sums. Balanced cases like "aabb" at length 4 must remain calm because $2 \le 2$ is allowed.
+**[atomic_07_03]**
+Length-$1$ substrings provide a strong sanity check: every length-$1$ substring is non-calm. The prefix-sum method naturally counts them correctly because a matching letter yields a $+1$ subarray sum (positive), while non-matching letters yield $-1$ (not counted). No special handling should be needed if the logic is correct.
+**[atomic_07_04]**
+Mapping prefix sums to Fenwick indices must cover the full range safely. Because values can reach $-n$ and $+n$, the Fenwick size and offset must ensure that both extremes map into $[1,\text{size}]$. Any mistake here typically manifests as out-of-bounds updates or silently wrong counts.
+**[atomic_07_05]**
+All accumulated counts must use 64-bit integers. Even a single letter’s positive-subarray count can be on the order of $n^2$, and the total number of substrings is about $2 \cdot 10^{10}$ when $n=2 \cdot 10^5$. Using 32-bit integers would overflow and corrupt the final result.
+**[atomic_07_06]**
+The data structure must be reset for each letter. If counts from a previous letter remain, the “seen prefix sums” multiset would contain values from a different $\pm 1$ transformation, mixing incompatible states and producing meaningless results. A correct implementation must isolate computations per letter.
+**[atomic_07_07]**
+Small regression tests should be used to confirm both correctness and strictness:
+- $s="ab"$ should output $1$ (only "ab" is calm).
+- $s="aaaa"$ should output $0$ (no calm substring exists).
+- $s="aab"$ should output $1$ (only "ab" is calm).
+These ensure the interpretation of $\frac{m}{2}$ and strict inequality aligns with the definition.

@@ -1,0 +1,24 @@
+### Corrections / fixes to the earlier reasoning (factual accuracy)
+
+1) **Strict vs non-strict condition (inequality wording)**
+- Earlier phrasing “calm requires `freq <= m/2`, i.e., not `freq >= m/2`” is **incorrect**.
+- Correct: substring is **not calm** iff **there exists** a letter with `freq > m/2` (strictly greater).  
+  Equivalently, calm iff for all letters `freq <= m/2`.
+- Implementation note: to avoid floats, many solutions should check `2*freq <= m` (calm condition for each letter) or `2*freq > m` (violating condition).
+
+2) **“No adjacent equal / high diversity ⇒ almost every substring calm” is too strong**
+- Having no adjacent equal characters does **not** imply most substrings are calm. Counterexample: `"ababa"` has many odd-length substrings with a strict majority.
+- More accurate: such strings *can* yield many calm substrings **if** the alphabet usage keeps frequencies well below half in typical windows, but it depends on the pattern and alphabet size.
+
+3) **Periodic many-letter pattern claim refinement**
+- For a string formed by repeating **26 distinct letters in a cycle** (e.g., `"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz..."`), it’s stronger than “almost all”: **every substring of length ≥ 2 is calm**, because the maximum frequency in any length `m` window is at most `ceil(m/26)`, which is always `<= m/2` for `m >= 2`.
+- For periodic patterns over a **small alphabet** (e.g., 2 letters alternating), many substrings are **not** calm (all odd lengths), so “almost all” would be wrong there.
+
+4) **Max-answer magnitude**
+- If all substrings of length ≥ 2 are calm, the answer is exactly:
+  \[
+  \frac{n(n+1)}{2} - n = \frac{n(n-1)}{2}
+  \]
+  For `n = 2e5`, that is `19,999,900,000` (~`2e10`), confirming the need for 64-bit.
+
+Everything else in the reasoning (e.g., length-1 substrings never calm; all-equal string gives 0; parity-sensitive alternating patterns; overflow and off-by-one risks; invalid input not applicable) is sound.

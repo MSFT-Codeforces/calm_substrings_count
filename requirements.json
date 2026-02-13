@@ -1,0 +1,15 @@
+{
+  "original": "https://www.codeforces.com/problemset/problem/1073/A",
+  "title": "Calm Substrings Count",
+  "tags": [
+    "Basic Data Structures",
+    "Arrays and Lists",
+    "Algorithm Complexity and Big O Notation",
+    "Sorting Algorithms"
+  ],
+  "model_breaking": true,
+  "time": 1,
+  "space": 32,
+  "new_colab_link": "https://colab.research.google.com/drive/15SspfQRqeJ2o_9GWKIKiAi146DQVw9qH",
+  "github_link": "https://github.com/MSFT-Codeforces/calm_substrings_count"
+}

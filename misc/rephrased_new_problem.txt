@@ -1,0 +1,193 @@
+## Problem — The Archivist’s Calm Excerpts
+
+In the Grand Archive, an archivist studies a long ribbon of runes. Each rune is a lowercase English letter.
+
+The archivist calls an excerpt **calm** if **no single rune takes more than half of the excerpt**.
+
+Formally, for an excerpt of length \(m\), it is calm if for every letter, its frequency is **not strictly greater** than \(\frac{m}{2}\).
+
+An **excerpt** is any **contiguous** piece of the ribbon (i.e., a substring).
+
+### Task
+Count how many excerpts of the ribbon are calm.
+
+---
+
+## Input Format
+- The first line contains an integer \(n\) \((1 \le n \le 2\cdot 10^5)\) — the ribbon length.
+- The second line contains a string \(s\) of length \(n\), consisting of lowercase Latin letters.
+
+## Output Format
+Print one integer — the number of calm excerpts.
+
+---
+
+## Sample Tests
+
+### Sample 1
+Input
+```
+2
+ab
+```
+Output
+```
+1
+```
+
+### Sample 2
+Input
+```
+4
+aaaa
+```
+Output
+```
+0
+```
+
+### Sample 3
+Input
+```
+3
+aab
+```
+Output
+```
+1
+```
+
+---
+
+# Editorial
+
+Let’s call an excerpt **un-calm** if it is *not* calm, meaning **some letter appears in it more than half the time**. Call such a letter the excerpt’s **overlord**.
+
+## Key Observation 1: An excerpt can’t have two overlords
+If two different letters \(x\) and \(y\) both appeared more than \(m/2\) times in length \(m\), then
+\[
+\text{count}(x) + \text{count}(y) > m,
+\]
+which is impossible.  
+So every un-calm excerpt has **exactly one** overlord letter.
+
+Therefore:
+\[
+\#(\text{calm excerpts}) = \#(\text{all excerpts}) - \sum_{c='a'}^{'z'} \#(\text{excerpts where } c \text{ is overlord}).
+\]
+Also note: length-1 excerpts are always un-calm (the single letter appears \(1 > 1/2\) times), and they are counted under their own letter automatically.
+
+Total number of excerpts:
+\[
+\#(\text{all excerpts}) = \frac{n(n+1)}{2}.
+\]
+
+---
+
+## Key Observation 2: Counting excerpts where a fixed letter \(c\) is overlord
+Fix a letter \(c\). Build an array \(a\) of length \(n\):
+- \(a_i = +1\) if \(s_i = c\)
+- \(a_i = -1\) otherwise
+
+For an excerpt of length \(m\) with \(\#c\) occurrences of \(c\),
+\[
+\text{sum} = (+1)\cdot \#c + (-1)\cdot (m-\#c) = 2\#c - m.
+\]
+Now \(c\) is an overlord iff:
+\[
+\#c > \frac{m}{2} \iff 2\#c - m > 0 \iff \text{sum} > 0.
+\]
+So we need the number of subarrays with **positive sum** in this \(\pm1\) array.
+
+### Prefix-sum reformulation
+Let prefix sums be \(P_0=0\), \(P_k=\sum_{i=1}^k a_i\).  
+Subarray \((l..r)\) has positive sum iff:
+\[
+P_r - P_{l-1} > 0 \iff P_{l-1} < P_r.
+\]
+So for each \(r\), we need the count of earlier prefix sums strictly smaller than \(P_r\).
+
+Prefix sums lie in \([-n, n]\), so we can shift them into positive indices and use a **Fenwick Tree (BIT)** to maintain counts of seen prefix sums:
+- when at value \(P_r\), add `BIT.query(P_r-1)` to the answer
+- then insert \(P_r\) into BIT
+
+Do this for each of the 26 letters and sum the results to get the total number of un-calm excerpts.
+
+---
+
+## Complexity
+- For each letter: \(O(n \log n)\)
+- Total: \(O(26 \cdot n \log n)\), fits for \(n \le 2\cdot 10^5\)
+- Memory: \(O(n)\) (BIT size \(\Theta(n)\))
+
+---
+
+# C++17 Reference Implementation
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Fenwick {
+    int n;
+    vector<long long> bit;
+    Fenwick(int n = 0) { init(n); }
+
+    void init(int n_) {
+        n = n_;
+        bit.assign(n + 1, 0);
+    }
+
+    void add(int i, long long v) {
+        for (; i <= n; i += i & -i) bit[i] += v;
+    }
+
+    long long sumPrefix(int i) const {
+        long long r = 0;
+        for (; i > 0; i -= i & -i) r += bit[i];
+        return r;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    string s;
+    cin >> n >> s;
+
+    long long totalExcerpts = 1LL * n * (n + 1) / 2;
+
+    // Prefix sums are in [-n, n]. We'll map value x to index x + offset (1-based).
+    int offset = n + 2;     // ensures mapped indices stay >= 1
+    int SZ = 2 * n + 5;     // enough room for all shifted prefix sums
+
+    Fenwick fw(SZ);
+    long long overlordExcerpts = 0;
+
+    for (char c = 'a'; c <= 'z'; c++) {
+        fw.init(SZ);
+
+        int pref = 0;
+        // Insert P0
+        fw.add(pref + offset, 1);
+
+        long long positiveSubarrays = 0;
+        for (int i = 0; i < n; i++) {
+            pref += (s[i] == c ? 1 : -1);
+            int idx = pref + offset;
+
+            // Count previous prefix sums strictly smaller: P_i < P_j
+            positiveSubarrays += fw.sumPrefix(idx - 1);
+
+            fw.add(idx, 1);
+        }
+        overlordExcerpts += positiveSubarrays;
+    }
+
+    long long calm = totalExcerpts - overlordExcerpts;
+    cout << calm << "\n";
+    return 0;
+}
+```

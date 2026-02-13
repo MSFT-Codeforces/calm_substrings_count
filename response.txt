@@ -1,0 +1,188 @@
+**1. Problem Understanding**
+
+We are given a string $s$ of length $n$ consisting of lowercase English letters. For every substring $s[l..r]$ (a contiguous segment), let its length be $m=r-l+1$ and let $\text{freq}(x)$ be the number of occurrences of letter $x$ inside this substring.
+
+A substring is called **calm** if no letter appears **strictly more** than half of its length:
+$$
+\forall x \in \{a,\dots,z\},\ \text{freq}(x) \le \frac{m}{2}.
+$$
+We must count how many substrings are calm.
+
+---
+
+**2. Optimal Approach**
+
+1. **Count all substrings**:
+   $$
+   \text{totalSubstrings} = \frac{n(n+1)}{2}.
+   $$
+
+2. **Count non-calm substrings instead, then subtract**:
+   $$
+   \text{calm} = \text{totalSubstrings} - \text{nonCalm}.
+   $$
+
+3. **Use the uniqueness of the over-half letter**:  
+   If a substring is non-calm, there exists a letter whose frequency is $>\frac{m}{2}$. This letter must be unique (two different letters cannot both exceed half). Therefore:
+   $$
+   \text{nonCalm} = \sum_{c='a'}^{'z'} \text{overlordCount}(c),
+   $$
+   where $\text{overlordCount}(c)$ counts substrings in which $c$ appears more than half the time.
+
+4. **Reduce $\text{overlordCount}(c)$ to counting positive-sum subarrays**:  
+   Fix a letter $c$ and build an array $a$:
+   - $a_i = +1$ if $s_i=c$
+   - $a_i = -1$ otherwise
+
+   For a substring of length $m$ with $\#c$ occurrences of $c$:
+   $$
+   \sum a = 2\#c - m.
+   $$
+   The condition $\#c > \frac{m}{2}$ is equivalent to $\sum a > 0$.
+
+5. **Count positive-sum subarrays with prefix sums + Fenwick Tree**:  
+   Let prefix sums be $P_0=0$, $P_k=\sum_{i=1}^k a_i$. A subarray $(l..r)$ has positive sum iff:
+   $$
+   P_r - P_{l-1} > 0 \iff P_{l-1} < P_r.
+   $$
+   So while scanning $P_r$ left to right, we need the number of earlier prefix sums strictly smaller than $P_r$. Prefix sums lie in $[-n,n]$, so we shift them to positive indices and maintain counts in a Fenwick Tree for $O(\log n)$ queries/updates.
+
+---
+
+**3. Code**
+```cpp
+#include <iostream>
+#include <string>
+#include <vector>
+
+/**
+ * @brief Fenwick Tree (Binary Indexed Tree) supporting point updates and prefix-sum queries.
+ */
+class FenwickTree {
+public:
+    /**
+     * @brief Creates a Fenwick tree and initializes it to a given size with all zeros.
+     *
+     * @param treeSize One-based maximum index supported by the tree.
+     */
+    explicit FenwickTree(int treeSize) {
+        resetTree(treeSize);
+    }
+
+    /**
+     * @brief Resets the tree to a given size and clears all stored values.
+     *
+     * @param treeSize One-based maximum index supported by the tree.
+     */
+    void resetTree(int treeSize) {
+        this->treeSize = treeSize;
+        binaryIndexedTree.assign(treeSize + 1, 0LL);
+    }
+
+    /**
+     * @brief Adds a value to a single index.
+     *
+     * @param oneBasedIndex One-based index to update.
+     * @param delta Value to add at the index.
+     */
+    void addValue(int oneBasedIndex, long long delta) {
+        while (oneBasedIndex <= treeSize) {
+            binaryIndexedTree[oneBasedIndex] += delta;
+            oneBasedIndex += oneBasedIndex & -oneBasedIndex;
+        }
+    }
+
+    /**
+     * @brief Computes the prefix sum from index 1 to oneBasedIndex.
+     *
+     * @param oneBasedIndex One-based index (inclusive).
+     * @return Sum of values in range [1..oneBasedIndex].
+     */
+    long long getPrefixSum(int oneBasedIndex) const {
+        long long result = 0;
+        while (oneBasedIndex > 0) {
+            result += binaryIndexedTree[oneBasedIndex];
+            oneBasedIndex -= oneBasedIndex & -oneBasedIndex;
+        }
+        return result;
+    }
+
+private:
+    int treeSize = 0;
+    std::vector<long long> binaryIndexedTree;
+};
+
+/**
+ * @brief Reads input, counts calm substrings, and prints the result.
+ *
+ * @return Exit code 0 on successful execution.
+ */
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int stringLength = 0;
+    std::string inputString;
+    std::cin >> stringLength >> inputString;
+
+    const long long totalSubstrings = 1LL * stringLength * (stringLength + 1) / 2;
+
+    // Prefix sums lie in [-n, n]. Shift them to be valid 1-based Fenwick indices.
+    const int prefixSumOffset = stringLength + 2;
+    const int fenwickTreeSize = 2 * stringLength + 5;
+
+    FenwickTree fenwickTree(fenwickTreeSize);
+    long long totalOverlordSubstrings = 0;
+
+    for (char targetChar = 'a'; targetChar <= 'z'; ++targetChar) {
+        fenwickTree.resetTree(fenwickTreeSize);
+
+        int prefixSumValue = 0;
+        fenwickTree.addValue(prefixSumValue + prefixSumOffset, 1);
+
+        long long positiveSumSubarrays = 0;
+
+        for (int positionIndex = 0; positionIndex < stringLength; ++positionIndex) {
+            prefixSumValue += (inputString[positionIndex] == targetChar) ? 1 : -1;
+            const int mappedPrefixSumIndex = prefixSumValue + prefixSumOffset;
+
+            positiveSumSubarrays += fenwickTree.getPrefixSum(mappedPrefixSumIndex - 1);
+            fenwickTree.addValue(mappedPrefixSumIndex, 1);
+        }
+
+        totalOverlordSubstrings += positiveSumSubarrays;
+    }
+
+    const long long calmSubstrings = totalSubstrings - totalOverlordSubstrings;
+    std::cout << calmSubstrings << "\n";
+    return 0;
+}
+```
+
+**4. Code Explanation**
+
+- The program first computes $\text{totalSubstrings}=\frac{n(n+1)}{2}$.
+- For each `targetChar` from 'a' to 'z', it constructs an implicit $\pm 1$ interpretation:
+  - `+1` when the current character equals `targetChar`
+  - `-1` otherwise
+- For this fixed letter, every substring where `targetChar` appears more than half the time corresponds to a subarray with strictly positive sum.
+- Using prefix sums $P$, a positive-sum subarray ending at position $r$ corresponds to the number of earlier prefix sums strictly smaller than $P_r$.
+- The Fenwick tree stores frequencies of previously seen prefix sums (after shifting by `prefixSumOffset`). For each new prefix sum index `mappedPrefixSumIndex`, the count of strictly smaller values is `fenwickTree.getPrefixSum(mappedPrefixSumIndex - 1)`, which is accumulated into `positiveSumSubarrays`.
+- Summing `positiveSumSubarrays` over all letters yields `totalOverlordSubstrings` (the number of non-calm substrings). Finally, the answer is `totalSubstrings - totalOverlordSubstrings`.
+
+A quick check on $s="ab"$:
+- Total substrings $=3$: "a", "b", "ab".
+- Non-calm substrings are the length-1 ones ("a" and "b"), so calm substrings $=1$ ("ab").
+
+---
+
+**5. Time and Space Complexity**
+
+- Time complexity: $O(26 \cdot n \log n)$, since for each of 26 letters we perform $n$ Fenwick updates and queries.
+- Space complexity: $O(n)$ for the Fenwick tree array.
+
+---
+
+**6. Conclusion**
+
+The solution counts calm substrings by subtracting the number of non-calm substrings from the total. Non-calm substrings are counted efficiently by converting each letter’s dominance condition into counting positive-sum subarrays and using a Fenwick tree to count prefix-sum ordering pairs in logarithmic time.

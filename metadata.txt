@@ -1,0 +1,9 @@
+# Metadata
+**Category:** - Coding
+**Topic:** - Competitive Programming
+**Subtopic:** - ["Basic Data Structures", "Arrays and Lists", "Algorithm Complexity and Big O Notation", "Sorting Algorithms"]
+**Difficulty:** - Hard
+**Languages:** - C++
+**Number of Approaches:** - 4, ($O(n^3)$ -> $O(n^2)$ -> $O(26 \cdot n \sqrt n)$ -> $O(26 \cdot n \log n)$)
+**Number of Chains:** - 7
+**Model-Breaking:** - True

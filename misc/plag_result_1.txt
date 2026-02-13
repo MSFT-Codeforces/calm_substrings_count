@@ -1,0 +1,29 @@
+- **AtCoder (AGC060 A) — No Majority** ([atcoder.jp](https://atcoder.jp/contests/agc060/tasks/agc060_a?utm_source=openai))  
+```text
+https://atcoder.jp/contests/agc060/tasks/agc060_a
+```
+
+- **CodeChef — CHEFDOMA (Chef and Dominating Subarrays)** ([codechef.com](https://www.codechef.com/problems/CHEFDOMA))  
+```text
+https://www.codechef.com/problems/CHEFDOMA
+```
+
+- **CodeChef — SETMJR (Set Major)** ([codechef.com](https://www.codechef.com/problems/SETMJR))  
+```text
+https://www.codechef.com/problems/SETMJR
+```
+
+- **CodeChef — CHEFLKJ (Chef and Array)** ([codechef.com](https://www.codechef.com/problems/CHEFLKJ))  
+```text
+https://www.codechef.com/problems/CHEFLKJ
+```
+
+- **HackerEarth — Superior Substring** ([codeforces.com](https://codeforces.com/blog/entry/64684?utm_source=openai))  
+```text
+https://www.hackerearth.com/practice/algorithms/searching/binary-search/practice-problems/algorithm/superior-substring-dec-circuits-e51b3c27/
+```
+
+- **Codeforces — 1605C (Dominant Character)** ([codeforces.com](https://codeforces.com/problemset/problem/1605/C?utm_source=openai))  
+```text
+https://codeforces.com/problemset/problem/1605/C
+```

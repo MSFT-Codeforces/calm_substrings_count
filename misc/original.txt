@@ -1,0 +1,78 @@
+**Problem Statement**
+You are given a string \(s\) of length \(n\) consisting of lowercase Latin letters.
+
+A **substring** of \(s\) is a contiguous segment of characters of \(s\). For example, `"defor"` is a substring of `"codeforces"`, while `"fors"` is not.
+
+Call a string of length \(m\) **diverse** if no letter appears **strictly more than** \(\frac{m}{2}\) times in it.  
+For instance, `"abc"` and `"iltlml"` are diverse, while `"aab"` and `"zz"` are not.
+
+Your task is to output **any** diverse substring of \(s\), or report that no diverse substring exists. You do **not** need to maximize or minimize the substring length.
+
+**Input Format**
+- The first line contains an integer \(n\) \((1 \le n \le 1000)\) — the length of the string.
+- The second line contains the string \(s\) of length \(n\), consisting of lowercase Latin letters.
+
+**Output Format**
+- Print `NO` if there is no diverse substring in \(s\).
+- Otherwise, print `YES` on the first line and print any diverse substring of \(s\) on the second line.
+
+**Examples**
+Sample Input 1
+```
+10
+codeforces
+```
+Sample Output 1
+```
+YES
+code
+```
+
+Sample Input 2
+```
+5
+aaaaa
+```
+Sample Output 2
+```
+NO
+```
+
+**Editorial**
+A string of length 2 with two different characters is already diverse: each character appears once, and \(1 \nleq \frac{2}{2}\) is false for “strictly more than”, so the condition holds.
+
+Therefore:
+- If the entire string consists of the same character, then every substring also consists of the same character, and no substring can be diverse (any length \(\ge 1\) would have that character appearing more than half the time).
+- Otherwise, there exists at least one pair of adjacent positions \(i, i+1\) with \(s[i] \ne s[i+1]\). The substring \(s[i..i+1]\) (length 2) is diverse and can be printed.
+
+Algorithm:
+1. Scan all adjacent pairs in \(O(n)\).
+2. If you find \(s[i] \ne s[i+1]\), output `YES` and the substring of length 2 starting at \(i\).
+3. If no such pair exists, output `NO`.
+
+Time complexity: \(O(n)\).  
+Memory usage: \(O(1)\) extra.
+
+**Code**
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    int n;
+    string s;
+    cin >> n >> s;
+
+    for (int i = 0; i + 1 < n; i++) {
+        if (s[i] != s[i + 1]) {
+            cout << "YES\n";
+            cout << s.substr(i, 2) << "\n";
+            return 0;
+        }
+    }
+
+    cout << "NO\n";
+    return 0;
+}
+```
