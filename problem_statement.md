@@ -53,7 +53,7 @@ abcdefghijklmnopqrstuvwxyz
 
 In the first example, $s=$ "zzzzazzzzzz". Almost every substring has a strict majority of 'z', so it is not calm. The only calm substrings are the two length-$2$ substrings "za" and "az", because each letter appears exactly once and thus the maximum frequency is $1 \le \frac{2}{2}=1$.
 
-In the first example, $s=$ "abcdefghijklmnopqrstuvwxyz". Any substring of length $m \ge 2$ has all distinct letters, so every letter appears at most once, and $1 \le \frac{m}{2}$ holds for all $m \ge 2$. Therefore, all substrings of length at least $2$ are calm, and the answer equals
+In the second example, $s=$ "abcdefghijklmnopqrstuvwxyz". Any substring of length $m \ge 2$ has all distinct letters, so every letter appears at most once, and $1 \le \frac{m}{2}$ holds for all $m \ge 2$. Therefore, all substrings of length at least $2$ are calm, and the answer equals
 $$
 \frac{n(n+1)}{2}-n=\frac{26\cdot 27}{2}-26=325.
 $$
