@@ -1,6 +1,4 @@
-**Calm Substrings Count**
-
-Time Limit: **1 seconds**
+Time Limit: **1 second**
 
 Memory Limit: **32 MB**
 
@@ -26,6 +24,7 @@ Print one integer — the number of calm substrings.
 
 - $1 \le n \le 2 \cdot 10^5$
 - $s$ contains only lowercase English letters
+
 **Examples:-**
  - **Input:**
 ```

@@ -45,7 +45,7 @@ We must count how many substrings are calm.
    $$
    P_r - P_{l-1} > 0 \iff P_{l-1} < P_r.
    $$
-   So while scanning $P_r$ left to right, we need the number of earlier prefix sums strictly smaller than $P_r$. Prefix sums lie in $[-n,n]$, so we shift them to positive indices and maintain counts in a Fenwick Tree for $O(\log n)$ queries/updates.
+   So while scanning $P_r$ left to right, we need the number of earlier prefix sums strictly smaller than $P_r$. Prefix sums lie in $[-n,n]$, so we shift them to positive indices and maintain counts in a Fenwick Tree for $O(\log n)$ queries/updates. For each of the 26 letters we do $n$ updates and queries, giving **time** $O(26 \cdot n \log n) = O(n \log n)$ and **space** $O(n)$ for the tree.
 
 ---
 
@@ -154,7 +154,7 @@ int main() {
     }
 
     const long long calmSubstrings = totalSubstrings - totalOverlordSubstrings;
-    std::cout << calmSubstrings << "\n";
+    std::cout << calmSubstrings;
     return 0;
 }
 ```
