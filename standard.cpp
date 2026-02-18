@@ -101,6 +101,6 @@ int main() {
     }
 
     const long long calmSubstrings = totalSubstrings - totalOverlordSubstrings;
-    std::cout << calmSubstrings;
+    std::cout << calmSubstrings << "\n";
     return 0;
 }

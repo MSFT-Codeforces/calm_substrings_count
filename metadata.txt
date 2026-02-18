@@ -1,10 +1,10 @@
 # Metadata
 **Category:** - Coding
 **Topic:** - Competitive Programming
-**Subtopic:** - ["Basic Data Structures", "Arrays and Lists", "Algorithm Complexity and Big O Notation", "Sorting Algorithms"]
+**Subtopic:** - ["Graph Algorithms", "Dynamic Programming", "Arrays and Lists", "Algorithm Complexity and Big O Notation"]
 **Difficulty:** - Hard
 **Languages:** - C++
-**Number of Approaches:** - 4, ($O(n^3)$ -> $O(n^2)$ -> $O(26 \cdot n \sqrt n)$ -> $O(26 \cdot n \log n)$)
+**Number of Approaches:** - 4, ($\Theta((n^2)^{2^n})$ -> $\Theta(2^n \cdot n^4)$ -> $\Theta(2^n \cdot n^3)$ -> $\Theta(2^n \cdot n^2)$, ...)
 **Number of Chains:** - 7
 **Model-Breaking:** - True
-**GitHub Link:** - https://github.com/MSFT-Codeforces/calm_substrings_count
+**GitHub:** - https://github.com/MSFT-Codeforces/calm_substrings_count
