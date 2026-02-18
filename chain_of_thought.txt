@@ -18,20 +18,26 @@ The required output is the total number of calm substrings of $s$, printed as a 
 ---
 
 **[section_02]**
-Designing test and edge cases to validate interpretation and catch pitfalls.
+Explaining the problem statement's provided sample test cases, then additional edge cases, to validate interpretation and catch pitfalls.
 **[atomic_02_01]**
-Test the smallest input: $n=1$, $s="a"$. The only substring has length $m=1$, and its only letter occurs $1$ time, which is strictly greater than $\frac{1}{2}$. Therefore, the expected answer is $0$, confirming that length-$1$ substrings are never calm.
+The problem statement provides two sample test cases. We explain each (input, why certain substrings are or are not calm, and how the output is derived), then discuss other edge cases.
 **[atomic_02_02]**
-Test a case with all distinct letters, such as $s="abcd"$. Substrings of length $2$ like "ab" have maximum frequency $1$, and $\frac{2}{2}=1$, so they should be calm. This confirms that equality to $\frac{m}{2}$ does not break calmness.
+**Provided Sample 1.** Input: $n=11$, $s=$ "zzzzazzzzzz". There are 10 'z's and 1 'a'. Any substring where some letter occurs strictly more than half the length is not calm. Length-$1$ substrings are never calm (one letter has frequency $1 > \frac{1}{2}$). For length $m \ge 2$, most substrings have a majority of 'z' (e.g. "zzzz", "zzzzazzzzzz"), so they are not calm. The only substrings where no letter exceeds $\frac{m}{2}$ are those with exactly one 'z' and one 'a': "za" and "az". In each, $\text{freq}_t(\text{'z'})=\text{freq}_t(\text{'a'})=1$ and $1 \le \frac{2}{2}$, so both are calm. Hence the expected output is $2$, as in the problem statement.
 **[atomic_02_03]**
-Test a case with all identical letters, such as $s="aaaa"$. Every substring of length $m$ has a letter with frequency $m$, and $m > \frac{m}{2}$ for all $m \ge 1$, so the expected answer is $0$. This checks extreme dominance and repeated-character behavior.
+**Provided Sample 2.** Input: $n=26$, $s=$ "abcdefghijklmnopqrstuvwxyz". All characters are distinct. Length-$1$ substrings (26 of them) are never calm. For any substring of length $m \ge 2$, each letter appears at most once, so $\text{freq}_t(x) \le 1 \le \frac{m}{2}$ for every letter $x$; thus every such substring is calm. The number of calm substrings is the total number of substrings minus the 26 length-$1$ ones: $\frac{n(n+1)}{2} - n = \frac{26 \cdot 27}{2} - 26 = 351 - 26 = 325$, as in the problem statement.
 **[atomic_02_04]**
-Test odd lengths where $\frac{m}{2}$ is fractional, such as $s="aab"$. The full substring "aab" has $m=3$ and $\text{freq}('a')=2$, and $2 > \frac{3}{2}=1.5$, so it is not calm. This prevents mistakes caused by integer division or rounding assumptions.
+**Other edge cases.** Smallest input: $n=1$, $s="a"$. The only substring has length $m=1$, and its only letter occurs $1$ time, which is strictly greater than $\frac{1}{2}$. Therefore, the expected answer is $0$, confirming that length-$1$ substrings are never calm.
 **[atomic_02_05]**
-Test balanced compositions, such as $s="aabb"$. The substring "aabb" has maximum frequency $2$ and $\frac{4}{2}=2$, so it should be calm, while "aa" is not calm because $2 > 1$. This checks that the condition depends on each substring’s own length and distribution.
+Test a case with all distinct letters, such as $s="abcd"$. Substrings of length $2$ like "ab" have maximum frequency $1$, and $\frac{2}{2}=1$, so they should be calm. This confirms that equality to $\frac{m}{2}$ does not break calmness.
 **[atomic_02_06]**
-Test that all letters are treated uniformly by trying strings involving letters near both ends of the alphabet, such as $s="zzaz"$. The expected behavior should not depend on whether a letter is 'a' or 'z'; any discrepancy would indicate an indexing or mapping error rather than a logical error in the definition.
+Test a case with all identical letters, such as $s="aaaa"$. Every substring of length $m$ has a letter with frequency $m$, and $m > \frac{m}{2}$ for all $m \ge 1$, so the expected answer is $0$. This checks extreme dominance and repeated-character behavior.
 **[atomic_02_07]**
+Test odd lengths where $\frac{m}{2}$ is fractional, such as $s="aab"$. The full substring "aab" has $m=3$ and $\text{freq}('a')=2$, and $2 > \frac{3}{2}=1.5$, so it is not calm. This prevents mistakes caused by integer division or rounding assumptions.
+**[atomic_02_08]**
+Test balanced compositions, such as $s="aabb"$. The substring "aabb" has maximum frequency $2$ and $\frac{4}{2}=2$, so it should be calm, while "aa" is not calm because $2 > 1$. This checks that the condition depends on each substring’s own length and distribution.
+**[atomic_02_09]**
+Test that all letters are treated uniformly by trying strings involving letters near both ends of the alphabet, such as $s="zzaz"$. The expected behavior should not depend on whether a letter is 'a' or 'z'; any discrepancy would indicate an indexing or mapping error rather than a logical error in the definition.
+**[atomic_02_10]**
 Stress-test reasoning with maximum $n$ conceptually: $n=2 \cdot 10^5$. Even if we cannot manually compute the expected value, this highlights that the answer may exceed 32-bit limits and that any correct implementation must avoid per-substring handling in practice. This test category is mainly for verifying that the solution design is compatible with constraints.
 
 ---
