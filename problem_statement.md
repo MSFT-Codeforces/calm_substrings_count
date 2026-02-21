@@ -25,6 +25,7 @@ Print one integer — the number of calm substrings.
 
 - $1 \le n \le 2 \cdot 10^5$
 - $s$ contains only lowercase English letters
+
 **Examples:-**
  - **Input:**
 ```
