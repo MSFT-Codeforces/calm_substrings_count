@@ -43,6 +43,6 @@ int main() {
         }
     }
 
-    cout << calmCount << "\n";
+    cout << calmCount;
     return 0;
 }
