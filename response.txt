@@ -158,7 +158,6 @@ For each character position, the code updates `prefixSumValue` by adding +1 if t
 **Final subtraction (lines 103–104):**
 After all 26 letters are processed, `totalOverlordSubstrings` holds the total number of non-calm substrings. The answer is `totalSubstrings - totalOverlordSubstrings`.
 
----
 
 **Sample walkthrough: $s = \texttt{"aab"}$, $n = 3$**
 

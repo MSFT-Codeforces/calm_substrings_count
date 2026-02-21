@@ -145,7 +145,7 @@ The per-position work is now two Fenwick operations (one prefix-sum query, one p
 ---
 
 **[section_07]**
-What correctness invariants and edge cases must hold for the complement-based counting approach?
+Validating correctness with invariants and addressing corner cases and implementation pitfalls.
 **[atomic_07_01]**
 The entire approach rests on the claim that each non-calm substring has exactly one over-half letter. If this invariant failed — say two letters could simultaneously exceed half the length — then summing per-letter counts would double-count some substrings, and the subtraction $\#(\text{all})-\#(\text{non-calm})$ would require inclusion-exclusion instead. Let us verify: if $x$ and $y$ both exceeded $\frac{m}{2}$, their combined count would exceed $m$, which is impossible in a string of length $m$. So the invariant holds unconditionally.
 **[atomic_07_02]**
