@@ -1,34 +1,26 @@
-**1. Problem Understanding**
+We count how many substrings of a given string are "calm"—meaning no single letter appears in more than half of the substring. The solution avoids checking every substring by counting the non-calm ones and subtracting from the total.
 
-We are given a string $s$ of length $n$ consisting of lowercase English letters. For every substring $s[l..r]$ (a contiguous segment), let its length be $m=r-l+1$ and let $\text{freq}(x)$ be the number of occurrences of letter $x$ inside this substring.
+**What we're solving**
 
-A substring is called **calm** if no letter appears **strictly more** than half of its length:
+You have a string $s$ of length $n$ with lowercase letters. For each substring $s[l..r]$, call its length $m = r - l + 1$ and let $\text{freq}(x)$ be how many times letter $x$ appears in it. The substring is calm if no letter appears strictly more than half the time:
 $$
 \forall x \in \{a,\dots,z\},\ \text{freq}(x) \le \frac{m}{2}.
 $$
-We must count how many substrings are calm.
+We need the number of calm substrings.
 
----
+**Idea of the approach**
 
-**2. Optimal Approach**
+Instead of testing each substring, we count substrings that are *not* calm and subtract that from the total.
 
-Rather than checking every substring individually, the key idea is to count the substrings that are *not* calm and subtract that from the total.
+The total number of substrings is $\frac{n(n+1)}{2}$, which we can compute directly. A substring fails to be calm when some letter appears strictly more than half the time; we can call that letter the "overlord" of that substring. At most one letter can be an overlord for a given substring (if two letters each exceeded half, their counts would add up to more than the length). So we can count non-calm substrings by going through each of the 26 letters, counting substrings where that letter is the overlord, and adding those counts. No double counting.
 
-**Step 1 — Start with the total.** The total number of substrings of a string of length $n$ is $\frac{n(n+1)}{2}$. This is a simple formula and costs nothing to compute.
+For a fixed letter (e.g. 'a'), replace every character in the string with +1 if it's 'a' and −1 otherwise. A substring where 'a' appears in more than half the positions is exactly a substring whose sum is strictly positive. So counting non-calm substrings with 'a' as overlord is the same as counting subarrays with positive sum in this +1/−1 array.
 
-**Step 2 — Count the complement.** A substring fails to be calm when some letter appears strictly more than half the time. We call such a letter the "overlord" of that substring. A critical observation is that an overlord, if it exists, must be unique: two different letters cannot both exceed half the length, because their combined count would exceed the length itself. This means we can count non-calm substrings by handling each letter of the alphabet separately and summing the results, with no risk of double counting.
+Using prefix sums: build the running prefix sum over that array. A subarray from $l$ to $r$ has positive sum exactly when the prefix at $r$ is strictly greater than the prefix at $l-1$. So for each position $r$, we need how many earlier prefix values are strictly smaller than the current one.
 
-**Step 3 — Turn each letter's count into a subarray-sum problem.** For a fixed letter (say 'a'), we imagine replacing every character in the string with either +1 (if it is 'a') or −1 (if it is anything else). In this transformed view, a substring where 'a' dominates more than half the positions is exactly a substring whose values add up to a strictly positive total. So counting non-calm substrings where 'a' is the overlord is the same as counting subarrays with a positive sum in this +1/−1 array.
+The prefix sums lie in a range of size $O(n)$, so we can shift them to positive indices and use a Fenwick tree. As we scan left to right, we keep in the tree how many times each prefix-sum value has appeared. For each new prefix we ask: how many previous values are strictly less than this one? That's one query and one update, both $O(\log n)$. We do this for each of the 26 letters (resetting the tree each time), sum the non-calm counts, then subtract from the total number of substrings to get the number of calm substrings.
 
-**Step 4 — Use prefix sums to rephrase the question.** We build a running prefix sum over the +1/−1 array. A subarray from position $l$ to $r$ has a positive sum exactly when the prefix sum at $r$ is strictly greater than the prefix sum at $l-1$. So the question becomes: for each position $r$, how many earlier prefix-sum values are strictly smaller than the current one?
-
-**Step 5 — Answer efficiently with a Fenwick Tree.** Because the prefix sums range from $-n$ to $+n$, we shift them into positive indices and maintain a Fenwick Tree (Binary Indexed Tree) that records how many times each prefix-sum value has appeared so far. As we scan from left to right, for each new prefix sum we query "how many previously seen values are strictly less than this one?" in $O(\log n)$ time, then insert the current value. We repeat this entire process for all 26 letters, resetting the tree each time.
-
-**Step 6 — Subtract to get the answer.** After summing the non-calm counts from all 26 letters, the number of calm substrings is simply the total number of substrings minus this sum.
-
----
-
-**3. Code**
+**Code**
 ```cpp
 #include <iostream>
 #include <string>
@@ -138,76 +130,26 @@ int main() {
 }
 ```
 
-**4. Code Explanation**
+**How the code works**
 
-**FenwickTree class (lines 8–60):**
-The `FenwickTree` class implements a Binary Indexed Tree that supports two operations. `addValue(i, delta)` adds `delta` to position `i`, walking up through the tree by flipping the lowest set bit. `getPrefixSum(i)` returns the cumulative sum from index 1 up to `i`, walking down by clearing the lowest set bit. `resetTree` re-initializes the tree to all zeros. All operations are $O(\log n)$.
+The FenwickTree class is a standard Binary Indexed Tree. `addValue(i, delta)` adds `delta` at index `i`; `getPrefixSum(i)` returns the sum from 1 to `i`. Both walk the tree in $O(\log n)$. `resetTree` re-initializes everything to zeros.
 
-**Reading input and computing the total (lines 67–75):**
-The program reads `stringLength` and `inputString`, then immediately computes `totalSubstrings` as `n*(n+1)/2` using 64-bit arithmetic to avoid overflow.
+The program reads the string and computes `totalSubstrings` as $n(n+1)/2$ in 64-bit to avoid overflow. Prefix sums live in $[-n, n]$, so we use `prefixSumOffset = n + 2` to map them to positive 1-based indices; the tree size is $2n+5$ to cover that range with some slack.
 
-**Setting up the index mapping (lines 77–79):**
-Prefix sums can range from $-n$ to $+n$, but the Fenwick tree needs positive 1-based indices. The code sets `prefixSumOffset = n + 2`, so the most negative possible prefix sum ($-n$) maps to index $2$, and the most positive ($+n$) maps to index $2n+2$. The tree is sized at `2*n + 5` to accommodate this with a small safety margin.
+For each letter from 'a' to 'z', we count substrings where that letter is the overlord. We reset the Fenwick tree and insert the initial prefix sum $P_0 = 0$ at the offset index before scanning. For each character we add +1 if it matches the current letter and −1 otherwise, update the prefix sum, then query how many previous prefix values are strictly less than the current one—that's exactly the number of substrings ending here where this letter dominates. We add that to the running count and insert the current prefix into the tree. After all 26 letters, we subtract the total non-calm count from the total number of substrings and print.
 
-**Outer loop over all 26 letters (lines 84–101):**
-For each `targetChar` from 'a' to 'z', the code counts how many substrings have that letter appearing strictly more than half the time. The Fenwick tree is reset at the start of each letter. Before scanning any characters, the initial prefix sum $P_0=0$ is inserted into the tree at position `0 + prefixSumOffset`, because every substring starting at position 1 compares against this baseline.
+**Example: $s = \texttt{"aab"}$, $n = 3$**
 
-**Inner loop — scanning the string (lines 92–98):**
-For each character position, the code updates `prefixSumValue` by adding +1 if the character matches `targetChar`, or −1 otherwise. It then maps this prefix sum to a Fenwick index via `prefixSumValue + prefixSumOffset`. The query `getPrefixSum(mappedPrefixSumIndex - 1)` counts how many previously inserted prefix sums are strictly less than the current one — each such pair corresponds to a substring where `targetChar` dominates. This count is added to `positiveSumSubarrays`. Then the current prefix sum is inserted into the tree.
+The six substrings are "a", "a", "b", "aa", "ab", and "aab". Only "ab" is calm (one of each letter, and $1 \le 2/2$). So the answer is 1.
 
-**Final subtraction (lines 103–104):**
-After all 26 letters are processed, `totalOverlordSubstrings` holds the total number of non-calm substrings. The answer is `totalSubstrings - totalOverlordSubstrings`.
+We have `totalSubstrings` $= 6$, `prefixSumOffset` $= 5$, `fenwickTreeSize` $= 11$.
 
+For targetChar 'a' the array is $[+1,+1,-1]$. We start with prefix 0 in the tree. At $i=0$ (first 'a') prefix becomes 1; there is 1 earlier value smaller than 1 (the initial 0), so we add 1. At $i=1$ prefix is 2; there are 2 earlier values smaller than 2 (0 and 1), so we add 2. At $i=2$ prefix is 1; there is 1 earlier value smaller than 1 (0), so we add 1. So 'a' is overlord in 4 substrings: "a", "a", "aa", "aab".
 
-**Sample walkthrough: $s = \texttt{"aab"}$, $n = 3$**
+For 'b' the array is $[-1,-1,+1]$. Prefixs go 0, −1, −2, −1. Only when we reach the last position do we have a previous prefix (−2) smaller than the current (−1), giving 1 substring where 'b' is overlord ("b"). So `totalOverlordSubstrings` $= 4 + 1 = 5$. For 'c' through 'z' the array is all −1, so prefix sums only decrease and no subarray has positive sum; they contribute 0.
 
-The six substrings are: "a" (pos 1), "a" (pos 2), "b" (pos 3), "aa" (pos 1–2), "ab" (pos 2–3), and "aab" (pos 1–3). By inspection, only "ab" is calm (each letter appears once, and $1 \le \frac{2}{2}$). So the expected answer is 1.
+So `calmSubstrings` $= 6 - 5 = 1$, which is correct. For the example $s = \texttt{"zzzzazzzzzz"}$ with $n = 11$, the same idea gives 66 total substrings, 64 non-calm (mostly dominated by 'z'), and 2 calm—the two length-2 windows "za" and "az" around the single 'a'.
 
-- `totalSubstrings` $= \frac{3 \times 4}{2} = 6$.
-- `prefixSumOffset` $= 3 + 2 = 5$; `fenwickTreeSize` $= 11$.
+**Complexity**
 
-**Processing targetChar = 'a'** (array: $[+1,+1,-1]$):
-
-| Step | Character | prefixSumValue | Mapped index | Query result | positiveSumSubarrays | Action |
-|---|---|---|---|---|---|---|
-| Init | — | 0 | 5 | — | 0 | Insert $P_0$ at index 5 |
-| $i=0$ | 'a' → +1 | 1 | 6 | getPrefixSum(5) = 1 | 1 | Insert at 6 |
-| $i=1$ | 'a' → +1 | 2 | 7 | getPrefixSum(6) = 2 | 3 | Insert at 7 |
-| $i=2$ | 'b' → −1 | 1 | 6 | getPrefixSum(5) = 1 | 4 | Insert at 6 |
-
-The query at $i=0$ found 1 earlier prefix sum less than 1 (namely $P_0=0$), corresponding to substring "a" at position 1. At $i=1$, it found 2 earlier values less than 2 ($P_0=0$ and $P_1=1$), corresponding to "aa" and the second "a". At $i=2$, it found 1 value less than 1 ($P_0=0$), corresponding to "aab". So letter 'a' is the overlord in 4 substrings: "a", "a", "aa", and "aab".
-
-`totalOverlordSubstrings` $= 4$.
-
-**Processing targetChar = 'b'** (array: $[-1,-1,+1]$):
-
-| Step | Character | prefixSumValue | Mapped index | Query result | positiveSumSubarrays | Action |
-|---|---|---|---|---|---|---|
-| Init | — | 0 | 5 | — | 0 | Insert $P_0$ at index 5 |
-| $i=0$ | 'a' → −1 | −1 | 4 | getPrefixSum(3) = 0 | 0 | Insert at 4 |
-| $i=1$ | 'a' → −1 | −2 | 3 | getPrefixSum(2) = 0 | 0 | Insert at 3 |
-| $i=2$ | 'b' → +1 | −1 | 4 | getPrefixSum(3) = 1 | 1 | Insert at 4 |
-
-At $i=2$, the query found 1 earlier prefix sum less than $-1$ (namely $P_2=-2$), corresponding to substring "b" at position 3 (where 'b' appears once in length 1, which exceeds $\frac{1}{2}$).
-
-`totalOverlordSubstrings` $= 4 + 1 = 5$.
-
-**Processing targetChar = 'c' through 'z':**
-For every remaining letter, the +1/−1 array is all −1's, so prefix sums strictly decrease: $0, -1, -2, -3$. No later prefix sum is ever greater than an earlier one, so every query returns 0. These letters contribute nothing.
-
-**Final result:** `calmSubstrings` $= 6 - 5 = 1$, which matches the expected output.
-
-We can verify against Example 1 ($s = \texttt{"zzzzazzzzzz"}$, $n=11$): the total substrings are $\frac{11 \times 12}{2} = 66$. The algorithm finds 64 non-calm substrings (dominated overwhelmingly by 'z'), giving $66 - 64 = 2$ calm substrings — the two length-2 windows "za" and "az" around the single 'a', matching the stated output.
-
----
-
-**5. Time and Space Complexity**
-
-- Time complexity: $O(26 \cdot n \log n)$, since for each of 26 letters we perform $n$ Fenwick updates and queries.
-- Space complexity: $O(n)$ for the Fenwick tree array.
-
----
-
-**6. Conclusion**
-
-The solution counts calm substrings by subtracting the number of non-calm substrings from the total. Non-calm substrings are counted efficiently by converting each letter’s dominance condition into counting positive-sum subarrays and using a Fenwick tree to count prefix-sum ordering pairs in logarithmic time.
+Time is $O(26 \cdot n \log n)$: for each letter we do $n$ Fenwick operations. Space is $O(n)$ for the tree.
